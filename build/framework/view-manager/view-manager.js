@@ -1,12 +1,13 @@
 import { assert } from '../debug.js';
 import PopupView from './popup-view.js';
-const FADE_TIME = 0.5;
+const FADE_TIME = 0.25;
 let currentView = null;
 let popupView = null;
 let pendingView = null;
 let tFade = 0;
 let transitionFunc = null;
 let isLoadingNextView = false;
+let isLoadingPopup = false;
 let tLoadingFade = 0;
 let drawCustomLoadingView = null;
 let documentHadFocus = true;
@@ -15,17 +16,22 @@ const ViewManager = {
     get popupIsOpen() { return popupView !== null; },
     transitionTo(nextView) {
         assert(!(nextView instanceof PopupView), 'Transition failed, primary view cannot be a popup');
+        assert(!isLoadingPopup, 'Transition failed, popup is still loading in');
         pendingView = nextView;
         transitionFunc = fadeOut;
     },
-    openPopup(popup) {
+    async openPopup(popup) {
         assert(popupView === null, 'Failed to open popup, one is already open');
         assert(currentView !== null, 'Failed to open popup, transition to a view first');
-        currentView.disable();
+        isLoadingPopup = true;
         popupView = popup;
+        await popupView.loadContent?.();
+        isLoadingPopup = false;
+        currentView.disable();
         popupView.enable();
     },
     closePopup() {
+        assert(!isLoadingPopup, 'Failed to close popup, content loading is not finished');
         assert(popupView !== null, 'Failed to close popup, no popup to close');
         assert(currentView !== null, 'Failed to close popup, transition to a view first');
         popupView.dispose();
@@ -48,21 +54,33 @@ const ViewManager = {
                 loadNextView();
             }
         }
-        if (document.hasFocus()) {
+        if (!isLoadingNextView) {
             currentView?.update?.();
             popupView?.update?.();
         }
     },
     draw() {
         if (!isLoadingNextView) {
+            push();
             currentView?.draw();
+            pop();
+            push();
             popupView?.draw();
+            pop();
         }
         if (tFade < 1) {
             background(0, 255 * (1 - tFade));
         }
         if (isLoadingNextView === true) {
-            (drawCustomLoadingView ?? drawDefaultLoadingView)();
+            if (currentView?.drawLoadingView !== undefined) {
+                currentView.drawLoadingView();
+            }
+            else if (drawCustomLoadingView !== null) {
+                drawCustomLoadingView();
+            }
+            else {
+                drawDefaultLoadingView();
+            }
         }
     },
 };

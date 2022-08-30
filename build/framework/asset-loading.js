@@ -4,22 +4,22 @@ function makeLoadFuncAsync(loadFunc, path, onComplete) {
         resolve(asset);
     }));
 }
-export function loadImageAsync(path, onComplete) {
-    return makeLoadFuncAsync(loadImage, path, onComplete);
+export function loadImageAsync(fileName, onComplete) {
+    return makeLoadFuncAsync(loadImage, `./assets/images/${fileName}`, onComplete);
+}
+export function loadSoundAsync(filePath, onComplete) {
+    return makeLoadFuncAsync(loadSound, `./assets/audio/${filePath}`, onComplete);
+}
+export function loadFontAsync(fileName, onComplete) {
+    return makeLoadFuncAsync(loadFont, `./assets/fonts/${fileName}`, onComplete);
+}
+export function loadModelAsync(fileName, onComplete) {
+    return makeLoadFuncAsync(loadModel, `./assets/models/${fileName}`, onComplete);
 }
 export function loadStringsAsync(path, onComplete) {
     return makeLoadFuncAsync(loadStrings, path, onComplete);
 }
 export function loadJSONAsync(path, onComplete) {
     return makeLoadFuncAsync(loadJSON, path, onComplete);
-}
-export function loadFontAsync(path, onComplete) {
-    return makeLoadFuncAsync(loadFont, path, onComplete);
-}
-export function loadSoundAsync(path, onComplete) {
-    return makeLoadFuncAsync(loadSound, path, onComplete);
-}
-export function loadModelAsync(path, onComplete) {
-    return makeLoadFuncAsync(loadModel, path, onComplete);
 }
 //# sourceMappingURL=asset-loading.js.map
