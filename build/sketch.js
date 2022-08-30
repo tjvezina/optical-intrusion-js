@@ -1,11 +1,18 @@
-globalThis.windowResized = function () {
-    resizeCanvas(windowWidth, windowHeight);
-};
+import ViewManager from './framework/view-manager/view-manager.js';
+import SplashView from './views/splash-view.js';
+export const CANVAS_SCALE = 2;
 globalThis.setup = function () {
-    createCanvas(windowWidth, windowHeight);
+    createCanvas(480, 320).style('display: none;');
     pixelDensity(1);
+    setTimeout(() => {
+        select('canvas')?.style(`display: block; width: ${width * CANVAS_SCALE}px; height: ${height * CANVAS_SCALE}px;`);
+    }, 0);
+    ViewManager.setLoadingViewFunc(() => { });
+    ViewManager.transitionTo(new SplashView());
 };
 globalThis.draw = function () {
-    background(42);
+    background(0, 0);
+    ViewManager.update();
+    ViewManager.draw();
 };
 //# sourceMappingURL=sketch.js.map

@@ -1,0 +1,38 @@
+import { loadImageAsync } from '../framework/asset-loading.js';
+import Actor from './actor.js';
+import { ColliderType } from './collision/collider.js';
+import { WeaponType } from './player.js';
+
+const BASIC_SPEED = 640;
+const BASIC_DAMAGE = 1;
+const MISSILE_SPEED = 320;
+const MISSILE_DAMAGE = 5;
+
+export default class Shot extends Actor {
+  static imgBasic: p5.Image;
+  static imgMissile: p5.Image;
+
+  static async loadContent(): Promise<void> {
+    await Promise.all([
+      loadImageAsync('shot-blue.png', img => { this.imgBasic = img; }),
+      loadImageAsync('shot-orange.png', img => { this.imgMissile = img; }),
+    ]);
+  }
+
+  vel: p5.Vector;
+  type: WeaponType;
+
+  constructor(pos: p5.Vector, dir: p5.Vector, type: WeaponType) {
+    super(type === WeaponType.Basic ? Shot.imgBasic : Shot.imgMissile, ColliderType.Circle);
+    this.type = type;
+    this.pos.set(pos);
+    this.vel = dir.copy().setMag(type === WeaponType.Basic ? BASIC_SPEED : MISSILE_SPEED);
+  }
+
+  get damage(): number { return this.type === WeaponType.Basic ? BASIC_DAMAGE : MISSILE_DAMAGE; }
+
+  update(): void {
+    // TODO: Remove explicit type casts when p5 type definitions are corrected
+    this.pos.add(p5.Vector.mult(this.vel, deltaTime/1000) as unknown as p5.Vector);
+  }
+}
