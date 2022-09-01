@@ -17,14 +17,11 @@ export default class OptionsView extends View {
         this.musicVolumeSlider.dispose();
         this.sfxVolumeSlider.dispose();
     }
-    async loadAssets() {
-        await Promise.all([
-            AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
-            AssetManager.loadImage('title-options.png', img => { this.imgTitle = img; }),
-            AssetManager.loadImage('button-back.png', img => {
-                this.backButton = new Button(img, 79, height - 32);
-            }),
-        ]);
+    init() {
+        this.imgBackground = AssetManager.getImage('starfield.png');
+        this.imgTitle = AssetManager.getImage('title-options.png');
+        const imgBackButton = AssetManager.getImage('button-back.png');
+        this.backButton = new Button(imgBackButton, 79, height - 32);
     }
     mouseClicked() {
         if (this.backButton.contains(mouseX, mouseY)) {

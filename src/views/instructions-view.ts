@@ -11,11 +11,9 @@ export default class InstructionsView extends View {
 
   currentPage = 0;
 
-  override async loadAssets(): Promise<void> {
-    await Promise.all([
-      AssetManager.loadImage('instructions-1.png', img => { this.imgPage1 = img; }),
-      AssetManager.loadImage('instructions-2.png', img => { this.imgPage2 = img; }),
-    ]);
+  override init(): void {
+    this.imgPage1 = AssetManager.getImage('instructions-1.png');
+    this.imgPage2 = AssetManager.getImage('instructions-2.png');
   }
 
   mouseClicked(): void {

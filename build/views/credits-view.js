@@ -4,14 +4,11 @@ import ViewManager from '../framework/view-manager/view-manager.js';
 import Button from '../ui/button.js';
 import MainMenuView from './main-menu-view.js';
 export default class CreditsView extends View {
-    async loadAssets() {
-        await Promise.all([
-            AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
-            AssetManager.loadImage('title-credits.png', img => { this.imgTitle = img; }),
-            AssetManager.loadImage('button-back.png', img => {
-                this.backButton = new Button(img, 79, height - 32);
-            }),
-        ]);
+    init() {
+        this.imgBackground = AssetManager.getImage('starfield.png');
+        this.imgTitle = AssetManager.getImage('title-credits.png');
+        const imgBackButton = AssetManager.getImage('button-back.png');
+        this.backButton = new Button(imgBackButton, 79, height - 32);
     }
     mouseClicked() {
         if (this.backButton.contains(mouseX, mouseY)) {

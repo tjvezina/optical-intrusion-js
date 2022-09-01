@@ -49,6 +49,8 @@ export default class GameView extends View implements CollisionListener {
 
   lastFocusTime = 0;
 
+  font: p5.Font;
+
   override onDispose(): void {
     this.music.stop();
     this.collisionManager.dispose();
@@ -65,6 +67,8 @@ export default class GameView extends View implements CollisionListener {
       AssetManager.loadSound('lazy-bones.mp3', music => { this.music = music; }),
 
       AssetManager.loadImage('wave-complete-message.png', img => { this.imgWaveComplete = img; }),
+
+      AssetManager.loadFont('OCRAStd.otf', font => { this.font = font; }),
 
       Background.loadContent(),
       WeaponControls.loadContent(),
@@ -225,6 +229,7 @@ export default class GameView extends View implements CollisionListener {
 
     if (this.isPaused) {
       background(0, 127);
+      textFont(this.font);
       textAlign(CENTER, CENTER);
       textSize(height/10);
       fill('#93cd53').stroke(0).strokeWeight(4);

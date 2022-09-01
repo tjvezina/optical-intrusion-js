@@ -10,15 +10,12 @@ export default class CreditsView extends View {
 
   backButton: Button;
 
-  override async loadAssets(): Promise<void> {
-    await Promise.all([
-      AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
-      AssetManager.loadImage('title-credits.png', img => { this.imgTitle = img; }),
+  override init(): void {
+    this.imgBackground = AssetManager.getImage('starfield.png');
+    this.imgTitle = AssetManager.getImage('title-credits.png');
 
-      AssetManager.loadImage('button-back.png', img => {
-        this.backButton = new Button(img, 79, height - 32);
-      }),
-    ]);
+    const imgBackButton = AssetManager.getImage('button-back.png');
+    this.backButton = new Button(imgBackButton, 79, height - 32);
   }
 
   mouseClicked(): void {

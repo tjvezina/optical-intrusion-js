@@ -38,6 +38,7 @@ export default class GameView extends View {
             AssetManager.loadSound('enemy-damage.wav', sound => { this.enemyDamageSound = sound; }),
             AssetManager.loadSound('lazy-bones.mp3', music => { this.music = music; }),
             AssetManager.loadImage('wave-complete-message.png', img => { this.imgWaveComplete = img; }),
+            AssetManager.loadFont('OCRAStd.otf', font => { this.font = font; }),
             Background.loadContent(),
             WeaponControls.loadContent(),
             Player.loadContent(),
@@ -167,6 +168,7 @@ export default class GameView extends View {
         text(`High Score: ${this.highScore}`, 28, height - 22);
         if (this.isPaused) {
             background(0, 127);
+            textFont(this.font);
             textAlign(CENTER, CENTER);
             textSize(height / 10);
             fill('#93cd53').stroke(0).strokeWeight(4);

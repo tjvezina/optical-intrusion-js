@@ -7,11 +7,9 @@ export default class GameOverView extends View {
   imgBackground: p5.Image;
   imgContent: p5.Image;
 
-  override async loadAssets(): Promise<void> {
-    await Promise.all([
-      AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
-      AssetManager.loadImage('game-over.png', img => { this.imgContent = img; }),
-    ]);
+  override init(): void {
+    this.imgBackground = AssetManager.getImage('starfield.png');
+    this.imgContent = AssetManager.getImage('game-over.png');
   }
 
   mouseClicked(): void {

@@ -16,24 +16,21 @@ export default class MainMenuView extends View {
   optionsButton: Button;
   creditsButton: Button;
 
-  override async loadAssets(): Promise<void> {
-    await Promise.all([
-      AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
-      AssetManager.loadImage('title.png', img => { this.imgTitle = img; }),
+  override init(): void {
+    this.imgBackground = AssetManager.getImage('starfield.png');
+    this.imgTitle = AssetManager.getImage('title.png');
 
-      AssetManager.loadImage('button-play.png', img => {
-        this.playButton = new Button(img, width/2 - 124, height/2 + 57);
-      }),
-      AssetManager.loadImage('button-how-to.png', img => {
-        this.howToButton = new Button(img, width/2 + 124, height/2 + 57);
-      }),
-      AssetManager.loadImage('button-options.png', img => {
-        this.optionsButton = new Button(img, width/2 - 124, height/2 + 122);
-      }),
-      AssetManager.loadImage('button-credits.png', img => {
-        this.creditsButton = new Button(img, width/2 + 124, height/2 + 122);
-      }),
-    ]);
+    const imgPlayButton = AssetManager.getImage('button-play.png');
+    this.playButton = new Button(imgPlayButton, width/2 - 124, height/2 + 57);
+
+    const imgHowToButton = AssetManager.getImage('button-how-to.png');
+    this.howToButton = new Button(imgHowToButton, width/2 + 124, height/2 + 57);
+
+    const imgOptionsButton = AssetManager.getImage('button-options.png');
+    this.optionsButton = new Button(imgOptionsButton, width/2 - 124, height/2 + 122);
+
+    const imgCreditsButton = AssetManager.getImage('button-credits.png');
+    this.creditsButton = new Button(imgCreditsButton, width/2 + 124, height/2 + 122);
   }
 
   mouseClicked(): void {

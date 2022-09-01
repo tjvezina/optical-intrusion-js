@@ -8,11 +8,9 @@ export default class InstructionsView extends View {
         super(...arguments);
         this.currentPage = 0;
     }
-    async loadAssets() {
-        await Promise.all([
-            AssetManager.loadImage('instructions-1.png', img => { this.imgPage1 = img; }),
-            AssetManager.loadImage('instructions-2.png', img => { this.imgPage2 = img; }),
-        ]);
+    init() {
+        this.imgPage1 = AssetManager.getImage('instructions-1.png');
+        this.imgPage2 = AssetManager.getImage('instructions-2.png');
     }
     mouseClicked() {
         if (this.currentPage < PAGE_COUNT - 1) {
