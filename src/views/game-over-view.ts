@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import MainMenuView from './main-menu-view.js';
@@ -7,10 +7,10 @@ export default class GameOverView extends View {
   imgBackground: p5.Image;
   imgContent: p5.Image;
 
-  async loadContent(): Promise<void> {
+  override async loadAssets(): Promise<void> {
     await Promise.all([
-      loadImageAsync('starfield.png', img => { this.imgBackground = img; }),
-      loadImageAsync('game-over.png', img => { this.imgContent = img; }),
+      AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
+      AssetManager.loadImage('game-over.png', img => { this.imgContent = img; }),
     ]);
   }
 
@@ -18,7 +18,7 @@ export default class GameOverView extends View {
     ViewManager.transitionTo(new MainMenuView());
   }
 
-  draw(): void {
+  override draw(): void {
     image(this.imgBackground, 0, 0, width, height);
     image(this.imgContent, 0, 0, width, height);
   }

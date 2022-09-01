@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Actor from './actor.js';
 
 export enum WeaponType {
@@ -12,7 +12,7 @@ export default class Player extends Actor {
   static img: p5.Image;
 
   static async loadContent(): Promise<void> {
-    this.img = await loadImageAsync('cannon.png');
+    this.img = await AssetManager.loadImage('cannon.png');
   }
 
   health = MAX_HEALTH;
@@ -24,7 +24,7 @@ export default class Player extends Actor {
     this.pos.set(16 + this.size.x/2, height/2);
   }
 
-  draw(): void {
+  override draw(): void {
     push();
     {
       translate(this.pos.x, this.pos.y);
@@ -40,7 +40,7 @@ export default class Player extends Actor {
 
     fill(col).noStroke();
     rectMode(CENTER);
-    rect(11, height/2, 4, (height - 18) * (this.health / MAX_HEALTH));
+    rect(11, height/2, 4, ceil((height - 18) * (this.health / MAX_HEALTH) / 2) * 2);
   }
 
   decreaseHealth(damage: number): void {

@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 
 const BG_SCROLL_SPEED = 25;
 
@@ -6,7 +6,7 @@ export default class Background {
   static img: p5.Image;
 
   static async loadContent(): Promise<void> {
-    this.img = await loadImageAsync('starfield.png');
+    this.img = await AssetManager.loadImage('starfield.png');
   }
 
   offset = 0;

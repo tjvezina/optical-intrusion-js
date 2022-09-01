@@ -1,5 +1,5 @@
-import { loadImageAsync, loadSoundAsync } from '../framework/asset-loading.js';
-import View from '../framework/view-manager/view.js';
+import AssetManager from '../framework/asset-manager.js';
+import View, { ViewState } from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import Background from '../game/background.js';
 import CollisionManager from '../game/collision/collision-manager.js';
@@ -10,7 +10,7 @@ import Shot from '../game/shot.js';
 import Wave, { WaveState } from '../game/wave.js';
 import WeaponControls from '../game/weapon-controls.js';
 import SaveDataHelper from '../io/save-data-helper.js';
-import GameOverPopup from './game-over-view.js';
+import GameOverView from './game-over-view.js';
 export default class GameView extends View {
     constructor() {
         super(...arguments);
@@ -21,23 +21,23 @@ export default class GameView extends View {
         this.currentScore = 0;
         this.highScore = SaveDataHelper.getHighScore();
         this.isAiming = false;
+        this.isPaused = false;
         this.isGameOver = false;
         this.lastFocusTime = 0;
     }
-    dispose() {
+    onDispose() {
         this.music.stop();
         this.collisionManager.dispose();
-        super.dispose();
     }
-    async loadContent() {
+    async loadAssets() {
         const loadSteps = [
-            loadSoundAsync('shot.wav', sound => { this.shotSound = sound; }),
-            loadSoundAsync('missile.wav', sound => { this.missileSound = sound; }),
-            loadSoundAsync('damage.wav', sound => { this.damageSound = sound; }),
-            loadSoundAsync('explode.wav', sound => { this.explodeSound = sound; }),
-            loadSoundAsync('enemy-damage.wav', sound => { this.enemyDamageSound = sound; }),
-            loadSoundAsync('lazy-bones.mp3', music => { this.music = music; }),
-            loadImageAsync('wave-complete-message.png', img => { this.imgWaveComplete = img; }),
+            AssetManager.loadSound('shot.wav', sound => { this.shotSound = sound; }),
+            AssetManager.loadSound('missile.wav', sound => { this.missileSound = sound; }),
+            AssetManager.loadSound('damage.wav', sound => { this.damageSound = sound; }),
+            AssetManager.loadSound('explode.wav', sound => { this.explodeSound = sound; }),
+            AssetManager.loadSound('enemy-damage.wav', sound => { this.enemyDamageSound = sound; }),
+            AssetManager.loadSound('lazy-bones.mp3', music => { this.music = music; }),
+            AssetManager.loadImage('wave-complete-message.png', img => { this.imgWaveComplete = img; }),
             Background.loadContent(),
             WeaponControls.loadContent(),
             Player.loadContent(),
@@ -49,6 +49,8 @@ export default class GameView extends View {
         await Promise.all(loadSteps.map(step => Promise.resolve(step).then(() => {
             this.loadingPercentage = (++stepsCompletedCount / loadSteps.length);
         })));
+    }
+    init() {
         this.background = new Background();
         this.weaponControls = new WeaponControls();
         this.player = new Player();
@@ -57,7 +59,7 @@ export default class GameView extends View {
         this.collisionManager = new CollisionManager(this);
         this.wave = new Wave(enemyType => this.enemyList.push(new Enemy(enemyType, this.wave.power)));
     }
-    drawLoadingView() {
+    drawLoadingIndicator() {
         const spacer = 2;
         const barWidth = width * 0.8;
         const barHeight = height * 0.04;
@@ -71,19 +73,24 @@ export default class GameView extends View {
         fill(255);
         rect(barX + spacer * 2, barY + spacer * 2, (barWidth - spacer * 4) * this.loadingPercentage, barHeight - spacer * 4);
     }
+    onBlur() {
+        this.pause();
+    }
+    pause() {
+        if (!this.isPaused) {
+            this.isPaused = true;
+            this.music.pause();
+        }
+    }
+    unpause() {
+        if (this.isPaused) {
+            this.isPaused = false;
+            this.music.loop();
+        }
+    }
     update() {
-        if (document.hasFocus()) {
-            if (this.music.isPlaying() === false) {
-                this.music.play();
-            }
-        }
-        else {
-            if (this.music.isPlaying() === true) {
-                this.music.pause();
-            }
-            this.lastFocusTime = millis();
+        if (this.isPaused)
             return;
-        }
         this.background.update();
         this.collisionManager.update();
         this.wave.update();
@@ -120,8 +127,8 @@ export default class GameView extends View {
         if (this.player.health === 0) {
             this.isGameOver = true;
         }
-        if (this.isGameOver && !ViewManager.popupIsOpen) {
-            ViewManager.transitionTo(new GameOverPopup());
+        if (this.isGameOver && this.state === ViewState.Active) {
+            ViewManager.transitionTo(new GameOverView());
         }
     }
     draw() {
@@ -158,16 +165,37 @@ export default class GameView extends View {
         text(`Your Score: ${this.currentScore}`, 28, 22);
         fill('#119ac4');
         text(`High Score: ${this.highScore}`, 28, height - 22);
-        if (!document.hasFocus()) {
+        if (this.isPaused) {
             background(0, 127);
+            textAlign(CENTER, CENTER);
+            textSize(height / 10);
+            fill('#93cd53').stroke(0).strokeWeight(4);
+            text('PAUSED', width / 2, height / 2);
+        }
+    }
+    keyPressed() {
+        if (keyCode === ESCAPE) {
+            if (this.isPaused) {
+                this.unpause();
+            }
+            else {
+                this.pause();
+            }
+        }
+    }
+    mouseClicked() {
+        if (this.isPaused && mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height) {
+            this.unpause();
         }
     }
     mousePressed() {
-        if (millis() - this.lastFocusTime < 100)
+        if (this.isPaused)
             return;
         if (this.weaponControls.handleMousePressed())
             return;
-        this.isAiming = true;
+        if (mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height) {
+            this.isAiming = true;
+        }
     }
     mouseReleased() {
         if (this.isAiming && this.weaponControls.tryFire()) {

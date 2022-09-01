@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import SaveDataHelper from '../io/save-data-helper.js';
@@ -21,18 +21,17 @@ export default class OptionsView extends View {
     this.sfxVolumeSlider.value = SaveDataHelper.getSFXVolume();
   }
 
-  dispose(): void {
+  override onDispose(): void {
     this.musicVolumeSlider.dispose();
     this.sfxVolumeSlider.dispose();
-    super.dispose();
   }
 
-  async loadContent(): Promise<void> {
+  override async loadAssets(): Promise<void> {
     await Promise.all([
-      loadImageAsync('starfield.png', img => { this.imgBackground = img; }),
-      loadImageAsync('title-options.png', img => { this.imgTitle = img; }),
+      AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
+      AssetManager.loadImage('title-options.png', img => { this.imgTitle = img; }),
 
-      loadImageAsync('button-back.png', img => {
+      AssetManager.loadImage('button-back.png', img => {
         this.backButton = new Button(img, 79, height - 32);
       }),
     ]);
@@ -44,12 +43,12 @@ export default class OptionsView extends View {
     }
   }
 
-  update(): void {
+  override update(): void {
     this.musicVolumeSlider.update();
     this.sfxVolumeSlider.update();
   }
 
-  draw(): void {
+  override draw(): void {
     image(this.imgBackground, 0, 0, width, height);
 
     imageMode(CENTER);

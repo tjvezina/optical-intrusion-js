@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Actor from './actor.js';
 import { ColliderType } from './collision/collider.js';
 
@@ -33,11 +33,11 @@ export default class Enemy extends Actor {
 
   static async loadContent(): Promise<void> {
     await Promise.all([
-      loadImageAsync('eye-blue.png', img => { this.imgList[0] = img; }),
-      loadImageAsync('eye-green.png', img => { this.imgList[1] = img; }),
-      loadImageAsync('eye-brown.png', img => { this.imgList[2] = img; }),
-      loadImageAsync('eye-yellow.png', img => { this.imgList[3] = img; }),
-      loadImageAsync('eye-red.png', img => { this.imgList[4] = img; }),
+      AssetManager.loadImage('eye-blue.png', img => { this.imgList[0] = img; }),
+      AssetManager.loadImage('eye-green.png', img => { this.imgList[1] = img; }),
+      AssetManager.loadImage('eye-brown.png', img => { this.imgList[2] = img; }),
+      AssetManager.loadImage('eye-yellow.png', img => { this.imgList[3] = img; }),
+      AssetManager.loadImage('eye-red.png', img => { this.imgList[4] = img; }),
     ]);
   }
 
@@ -83,7 +83,7 @@ export default class Enemy extends Actor {
     }
   }
 
-  update(): void {
+  override update(): void {
     switch (this.type) {
       case EnemyType.A: {
         this.pos.x += this.vel.x * (deltaTime/1000);
@@ -120,7 +120,7 @@ export default class Enemy extends Actor {
     }
   }
 
-  draw(): void {
+  override draw(): void {
     super.draw();
 
     const { healthBarWidth: barWidth, healthBarOffset: offset } = ENEMY_DATA_MAP[this.type];

@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Actor from './actor.js';
 export var WeaponType;
 (function (WeaponType) {
@@ -14,7 +14,7 @@ export default class Player extends Actor {
         this.pos.set(16 + this.size.x / 2, height / 2);
     }
     static async loadContent() {
-        this.img = await loadImageAsync('cannon.png');
+        this.img = await AssetManager.loadImage('cannon.png');
     }
     draw() {
         push();
@@ -30,7 +30,7 @@ export default class Player extends Actor {
         rect(7, 7, 8, height - 14);
         fill(col).noStroke();
         rectMode(CENTER);
-        rect(11, height / 2, 4, (height - 18) * (this.health / MAX_HEALTH));
+        rect(11, height / 2, 4, ceil((height - 18) * (this.health / MAX_HEALTH) / 2) * 2);
     }
     decreaseHealth(damage) {
         this.health = max(0, this.health - damage);

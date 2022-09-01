@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Actor from './actor.js';
 import { ColliderType } from './collision/collider.js';
 import { WeaponType } from './player.js';
@@ -15,8 +15,8 @@ export default class Shot extends Actor {
     }
     static async loadContent() {
         await Promise.all([
-            loadImageAsync('shot-blue.png', img => { this.imgBasic = img; }),
-            loadImageAsync('shot-orange.png', img => { this.imgMissile = img; }),
+            AssetManager.loadImage('shot-blue.png', img => { this.imgBasic = img; }),
+            AssetManager.loadImage('shot-orange.png', img => { this.imgMissile = img; }),
         ]);
     }
     get damage() { return this.type === WeaponType.Basic ? BASIC_DAMAGE : MISSILE_DAMAGE; }

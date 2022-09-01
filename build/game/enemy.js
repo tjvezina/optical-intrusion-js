@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Actor from './actor.js';
 import { ColliderType } from './collision/collider.js';
 export var EnemyType;
@@ -49,11 +49,11 @@ export default class Enemy extends Actor {
     }
     static async loadContent() {
         await Promise.all([
-            loadImageAsync('eye-blue.png', img => { this.imgList[0] = img; }),
-            loadImageAsync('eye-green.png', img => { this.imgList[1] = img; }),
-            loadImageAsync('eye-brown.png', img => { this.imgList[2] = img; }),
-            loadImageAsync('eye-yellow.png', img => { this.imgList[3] = img; }),
-            loadImageAsync('eye-red.png', img => { this.imgList[4] = img; }),
+            AssetManager.loadImage('eye-blue.png', img => { this.imgList[0] = img; }),
+            AssetManager.loadImage('eye-green.png', img => { this.imgList[1] = img; }),
+            AssetManager.loadImage('eye-brown.png', img => { this.imgList[2] = img; }),
+            AssetManager.loadImage('eye-yellow.png', img => { this.imgList[3] = img; }),
+            AssetManager.loadImage('eye-red.png', img => { this.imgList[4] = img; }),
         ]);
     }
     update() {

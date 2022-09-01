@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Sprite from '../framework/sprite.js';
 import Enemy from './enemy.js';
 
@@ -6,7 +6,7 @@ export default class Explosion {
   static img: p5.Image;
 
   static async loadContent(): Promise<void> {
-    this.img = await loadImageAsync('explosion.png');
+    this.img = await AssetManager.loadImage('explosion.png');
   }
 
   sprite: Sprite;

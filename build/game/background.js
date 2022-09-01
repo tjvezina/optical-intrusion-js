@@ -1,11 +1,11 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 const BG_SCROLL_SPEED = 25;
 export default class Background {
     constructor() {
         this.offset = 0;
     }
     static async loadContent() {
-        this.img = await loadImageAsync('starfield.png');
+        this.img = await AssetManager.loadImage('starfield.png');
     }
     update() {
         this.offset = (this.offset - BG_SCROLL_SPEED * (deltaTime / 1000)) % Background.img.width;

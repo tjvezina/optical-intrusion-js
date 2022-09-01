@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import Button from '../ui/button.js';
@@ -7,20 +7,20 @@ import GameView from './game-view.js';
 import InstructionsView from './instructions-view.js';
 import OptionsView from './options-view.js';
 export default class MainMenuView extends View {
-    async loadContent() {
+    async loadAssets() {
         await Promise.all([
-            loadImageAsync('starfield.png', img => { this.imgBackground = img; }),
-            loadImageAsync('title.png', img => { this.imgTitle = img; }),
-            loadImageAsync('button-play.png', img => {
+            AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
+            AssetManager.loadImage('title.png', img => { this.imgTitle = img; }),
+            AssetManager.loadImage('button-play.png', img => {
                 this.playButton = new Button(img, width / 2 - 124, height / 2 + 57);
             }),
-            loadImageAsync('button-how-to.png', img => {
+            AssetManager.loadImage('button-how-to.png', img => {
                 this.howToButton = new Button(img, width / 2 + 124, height / 2 + 57);
             }),
-            loadImageAsync('button-options.png', img => {
+            AssetManager.loadImage('button-options.png', img => {
                 this.optionsButton = new Button(img, width / 2 - 124, height / 2 + 122);
             }),
-            loadImageAsync('button-credits.png', img => {
+            AssetManager.loadImage('button-credits.png', img => {
                 this.creditsButton = new Button(img, width / 2 + 124, height / 2 + 122);
             }),
         ]);

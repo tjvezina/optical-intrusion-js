@@ -8,5 +8,6 @@
     "outDir": "build",
     "removeComments": true,
     "strictNullChecks": true,
+    "noImplicitOverride": true,
   }
 }

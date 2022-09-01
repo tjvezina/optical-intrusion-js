@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import { WeaponType } from './player.js';
 
 const MISSILE_RELOAD_TIME = 1;
@@ -10,9 +10,9 @@ export default class WeaponControls {
 
   static async loadContent(): Promise<void> {
     await Promise.all([
-      loadImageAsync('weapon-box-blue.png', img => { this.imgBasic = img; }),
-      loadImageAsync('weapon-box-orange.png', img => { this.imgMissile = img; }),
-      loadImageAsync('weapon-box-glow.png', img => { this.imgHighlight = img; }),
+      AssetManager.loadImage('weapon-box-blue.png', img => { this.imgBasic = img; }),
+      AssetManager.loadImage('weapon-box-orange.png', img => { this.imgMissile = img; }),
+      AssetManager.loadImage('weapon-box-glow.png', img => { this.imgHighlight = img; }),
     ]);
   }
 

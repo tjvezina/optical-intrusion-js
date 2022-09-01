@@ -11,8 +11,6 @@ globalThis.setup = function (): void {
     select('canvas')?.style(`display: block; width: ${width*CANVAS_SCALE}px; height: ${height*CANVAS_SCALE}px;`);
   }, 0);
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ViewManager.setLoadingViewFunc(() => { });
   ViewManager.transitionTo(new SplashView());
 };
 

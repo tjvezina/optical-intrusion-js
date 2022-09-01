@@ -1,119 +1,175 @@
 import { assert } from '../debug.js';
-import PopupView from './popup-view.js';
-const FADE_TIME = 0.25;
-let currentView = null;
-let popupView = null;
-let pendingView = null;
-let tFade = 0;
-let transitionFunc = null;
-let isLoadingNextView = false;
-let isLoadingPopup = false;
-let tLoadingFade = 0;
-let drawCustomLoadingView = null;
-let documentHadFocus = true;
-const ViewManager = {
-    get isInTransition() { return tFade < 1; },
-    get popupIsOpen() { return popupView !== null; },
+import { ViewState } from './view.js';
+const layerList = [];
+let loadingIndicatorDrawFunc = drawDefaultLoadingIndicator;
+let didBecomeVisible = false;
+document.addEventListener('visibilitychange', () => { didBecomeVisible = (!document.hidden); });
+window.addEventListener('focus', () => {
+    layerList.forEach(layer => {
+        if (layer.view !== null && layer.view.state !== ViewState.Loading) {
+            layer.view?.onFocus?.();
+        }
+    });
+    updateEnabledStates();
+});
+window.addEventListener('blur', () => {
+    layerList.forEach(layer => {
+        if (layer.view !== null && layer.view.state !== ViewState.Loading) {
+            layer.view?.onBlur?.();
+        }
+    });
+    updateEnabledStates();
+});
+class ViewLayer {
+    constructor() {
+        this.view = null;
+        this.pendingView = null;
+    }
     transitionTo(nextView) {
-        assert(!(nextView instanceof PopupView), 'Transition failed, primary view cannot be a popup');
-        assert(!isLoadingPopup, 'Transition failed, popup is still loading in');
-        pendingView = nextView;
-        transitionFunc = fadeOut;
-    },
-    async openPopup(popup) {
-        assert(popupView === null, 'Failed to open popup, one is already open');
-        assert(currentView !== null, 'Failed to open popup, transition to a view first');
-        isLoadingPopup = true;
-        popupView = popup;
-        await popupView.loadContent?.();
-        isLoadingPopup = false;
-        currentView.disable();
-        popupView.enable();
-    },
-    closePopup() {
-        assert(!isLoadingPopup, 'Failed to close popup, content loading is not finished');
-        assert(popupView !== null, 'Failed to close popup, no popup to close');
-        assert(currentView !== null, 'Failed to close popup, transition to a view first');
-        popupView.dispose();
-        popupView = null;
-        currentView.enable();
-    },
-    setLoadingViewFunc(drawLoadingView) {
-        drawCustomLoadingView = drawLoadingView;
-    },
+        assert(this.view === null || this.view.state === ViewState.Active, 'View transition failed, already transitioning to another view');
+        if (this.view !== null) {
+            this.pendingView = nextView;
+            this.exitView();
+        }
+        else {
+            this.view = nextView;
+            this.loadView();
+        }
+    }
+    exitView() {
+        if (this.view !== null) {
+            assert(this.view.state === ViewState.Active, 'Failed to exit view, still transitioning in');
+            this.view.state = ViewState.Exiting;
+            if (this.view.isEnabled) {
+                this.view.disable();
+            }
+        }
+    }
     update() {
-        const documentHasFocus = document.hasFocus();
-        if (documentHasFocus !== documentHadFocus) {
-            documentHadFocus = documentHasFocus;
-            currentView?.onFocusChanged?.(documentHasFocus);
-            popupView?.onFocusChanged?.(documentHasFocus);
-        }
-        if (transitionFunc?.() === true) {
-            transitionFunc = null;
-            if (pendingView !== null) {
-                loadNextView();
+        if (this.view === null)
+            return;
+        switch (this.view.state) {
+            case ViewState.Entering: {
+                if (this.view.enterTime > 0 && this.view.transitionPos < 1) {
+                    this.view.transitionPos += (deltaTime / 1000) / this.view.enterTime;
+                }
+                else {
+                    this.view.state = ViewState.Active;
+                    onViewEntered();
+                }
+                break;
+            }
+            case ViewState.Exiting: {
+                if (this.view.exitTime > 0 && this.view.transitionPos > 0) {
+                    this.view.transitionPos -= (deltaTime / 1000) / this.view.exitTime;
+                }
+                else {
+                    this.view.dispose();
+                    if (this.pendingView !== null) {
+                        this.view = this.pendingView;
+                        this.loadView();
+                    }
+                    onViewExited();
+                }
+                break;
             }
         }
-        if (!isLoadingNextView) {
-            currentView?.update?.();
-            popupView?.update?.();
+        if (this.view.state !== ViewState.Loading) {
+            this.view.update?.();
         }
-    },
+    }
     draw() {
-        if (!isLoadingNextView) {
-            push();
-            currentView?.draw();
-            pop();
-            push();
-            popupView?.draw();
-            pop();
-        }
-        if (tFade < 1) {
-            background(0, 255 * (1 - tFade));
-        }
-        if (isLoadingNextView === true) {
-            if (currentView?.drawLoadingView !== undefined) {
-                currentView.drawLoadingView();
-            }
-            else if (drawCustomLoadingView !== null) {
-                drawCustomLoadingView();
+        if (this.view === null)
+            return;
+        push();
+        if (this.view.state === ViewState.Loading) {
+            if (this.view.drawLoadingIndicator !== undefined) {
+                this.view.drawLoadingIndicator();
             }
             else {
-                drawDefaultLoadingView();
+                loadingIndicatorDrawFunc();
             }
         }
+        else {
+            this.view.draw();
+            if ((this.view.state === ViewState.Entering && this.view.doEnterFade) ||
+                (this.view.state === ViewState.Exiting && this.view.doExitFade)) {
+                background(0, 255 * (1 - this.view.transitionPos));
+            }
+        }
+        pop();
+    }
+    async loadView() {
+        assert(this.view !== null, 'Failed to load view, no view to load');
+        if (this.view.loadAssets !== undefined) {
+            this.view.state = ViewState.Loading;
+            await this.view.loadAssets();
+        }
+        this.view.state = ViewState.Entering;
+        this.view.init?.();
+        if (!document.hasFocus()) {
+            this.view.onBlur?.();
+        }
+    }
+}
+const ViewManager = {
+    setLoadingIndicatorDrawFunc(func) {
+        loadingIndicatorDrawFunc = func;
+    },
+    transitionTo(view, { layer } = { layer: 0 }) {
+        assert(layerList.every(layer => layer.view === null || layer.view.state === ViewState.Active), 'View transition failed, a view is already transitioning');
+        assert(layer >= 0 && Number.isInteger(layer), 'View transition failed, layer must be a positive integer');
+        if (layerList[layer] === undefined) {
+            layerList[layer] = new ViewLayer();
+        }
+        layerList[layer]?.transitionTo(view);
+    },
+    exitView(view) {
+        const layer = layerList.find(layer => layer?.view === view);
+        assert(layer !== undefined, 'Failed to exit view, not found in view layers');
+        layer.exitView();
+    },
+    clearLayer(layer) {
+        layerList[layer]?.exitView();
+    },
+    update() {
+        if (didBecomeVisible) {
+            didBecomeVisible = false;
+            deltaTime = 1000 / 60;
+        }
+        layerList.forEach(layer => layer?.update());
+    },
+    draw() {
+        layerList.forEach(layer => layer?.draw());
     },
 };
-async function loadNextView() {
-    assert(pendingView !== null, 'Failed to load next view, no view is pending');
-    isLoadingNextView = true;
-    tLoadingFade = 0;
-    popupView?.dispose();
-    popupView = null;
-    currentView?.dispose();
-    currentView = pendingView;
-    pendingView = null;
-    await currentView.loadContent?.();
-    currentView.enable();
-    isLoadingNextView = false;
-    transitionFunc = fadeIn;
+function onViewEntered() { updateEnabledStates(); }
+function onViewExited() { updateEnabledStates(); }
+function updateEnabledStates() {
+    let isEnabled = document.hasFocus();
+    [...layerList].reverse().forEach(layer => {
+        if (layer === undefined || layer.view === null)
+            return;
+        isEnabled && (isEnabled = layer.view.state === ViewState.Active);
+        if (layer.view.isEnabled !== isEnabled) {
+            if (isEnabled) {
+                layer.view.enable();
+            }
+            else {
+                layer.view.disable();
+            }
+        }
+        isEnabled = false;
+    });
 }
-function fadeIn() {
-    tFade = min(1, tFade + (deltaTime / 1000) / FADE_TIME);
-    return (tFade === 1);
-}
-function fadeOut() {
-    tFade = max(0, tFade - (deltaTime / 1000) / FADE_TIME);
-    return (tFade === 0);
-}
-function drawDefaultLoadingView() {
-    tLoadingFade = min(1, tLoadingFade + (deltaTime / 1000) / FADE_TIME);
+function drawDefaultLoadingIndicator() {
     push();
     {
+        background(0);
         textAlign(CENTER, CENTER);
         textSize(height / 20);
         textStyle(BOLD);
-        fill(200, 255 * tLoadingFade).noStroke();
+        fill(200).noStroke();
         text('Loading...', width / 2, height / 2);
     }
     pop();

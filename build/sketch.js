@@ -7,7 +7,6 @@ globalThis.setup = function () {
     setTimeout(() => {
         select('canvas')?.style(`display: block; width: ${width * CANVAS_SCALE}px; height: ${height * CANVAS_SCALE}px;`);
     }, 0);
-    ViewManager.setLoadingViewFunc(() => { });
     ViewManager.transitionTo(new SplashView());
 };
 globalThis.draw = function () {

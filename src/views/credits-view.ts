@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import Button from '../ui/button.js';
@@ -10,12 +10,12 @@ export default class CreditsView extends View {
 
   backButton: Button;
 
-  async loadContent(): Promise<void> {
+  override async loadAssets(): Promise<void> {
     await Promise.all([
-      loadImageAsync('starfield.png', img => { this.imgBackground = img; }),
-      loadImageAsync('title-credits.png', img => { this.imgTitle = img; }),
+      AssetManager.loadImage('starfield.png', img => { this.imgBackground = img; }),
+      AssetManager.loadImage('title-credits.png', img => { this.imgTitle = img; }),
 
-      loadImageAsync('button-back.png', img => {
+      AssetManager.loadImage('button-back.png', img => {
         this.backButton = new Button(img, 79, height - 32);
       }),
     ]);
@@ -27,7 +27,7 @@ export default class CreditsView extends View {
     }
   }
 
-  draw(): void {
+  override draw(): void {
     image(this.imgBackground, 0, 0, width, height);
 
     imageMode(CENTER);

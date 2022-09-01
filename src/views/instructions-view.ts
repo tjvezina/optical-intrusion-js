@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import MainMenuView from './main-menu-view.js';
@@ -11,10 +11,10 @@ export default class InstructionsView extends View {
 
   currentPage = 0;
 
-  async loadContent(): Promise<void> {
+  override async loadAssets(): Promise<void> {
     await Promise.all([
-      loadImageAsync('instructions-1.png', img => { this.imgPage1 = img; }),
-      loadImageAsync('instructions-2.png', img => { this.imgPage2 = img; }),
+      AssetManager.loadImage('instructions-1.png', img => { this.imgPage1 = img; }),
+      AssetManager.loadImage('instructions-2.png', img => { this.imgPage2 = img; }),
     ]);
   }
 
@@ -26,7 +26,7 @@ export default class InstructionsView extends View {
     }
   }
 
-  draw(): void {
+  override draw(): void {
     image([this.imgPage1, this.imgPage2][this.currentPage], 0, 0, width, height);
   }
 }

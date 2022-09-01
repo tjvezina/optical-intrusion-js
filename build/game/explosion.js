@@ -1,4 +1,4 @@
-import { loadImageAsync } from '../framework/asset-loading.js';
+import AssetManager from '../framework/asset-manager.js';
 import Sprite from '../framework/sprite.js';
 export default class Explosion {
     constructor(enemy) {
@@ -11,7 +11,7 @@ export default class Explosion {
             this.scale = 4;
     }
     static async loadContent() {
-        this.img = await loadImageAsync('explosion.png');
+        this.img = await AssetManager.loadImage('explosion.png');
     }
     update() {
         this.sprite.update();
