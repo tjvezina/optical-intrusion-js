@@ -3,6 +3,10 @@ import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import MainMenuView from './main-menu-view.js';
 export default class SplashView extends View {
+    constructor() {
+        super();
+        this.doExitFade = false;
+    }
     async loadAssets() {
         await Promise.all([
             AssetManager.preloadImage('starfield.png'),
@@ -15,13 +19,10 @@ export default class SplashView extends View {
             AssetManager.preloadImage('title-options.png'),
             AssetManager.preloadImage('title-credits.png'),
             AssetManager.preloadImage('button-back.png'),
-            AssetManager.preloadImage('instructions-1.png'),
-            AssetManager.preloadImage('instructions-2.png'),
             AssetManager.preloadImage('game-over.png'),
         ]);
     }
     init() {
-        this.imgBackground = AssetManager.getImage('starfield.png');
         this.imgTitle = AssetManager.getImage('title.png');
         this.imgContinue = AssetManager.getImage('tap-to-continue.png');
     }
@@ -29,9 +30,9 @@ export default class SplashView extends View {
         ViewManager.transitionTo(new MainMenuView());
     }
     draw() {
-        image(this.imgBackground, 0, 0, width, height);
         imageMode(CENTER);
         image(this.imgTitle, width / 2, height / 2 - 15);
+        tint(255, 255 * this.transitionPos);
         image(this.imgContinue, width / 2, height / 2 + 84);
     }
 }

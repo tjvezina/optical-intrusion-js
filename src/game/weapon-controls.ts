@@ -1,75 +1,59 @@
-import AssetManager from '../framework/asset-manager.js';
 import { WeaponType } from './player.js';
 
+const BASIC_RELOAD_TIME = 0.1;
 const MISSILE_RELOAD_TIME = 1;
 
+const BAR_HEIGHT = 64;
+const BAR_WIDTH = 4;
+
 export default class WeaponControls {
-  static imgBasic;
-  static imgMissile;
-  static imgHighlight;
-
-  static async loadContent(): Promise<void> {
-    await Promise.all([
-      AssetManager.loadImage('weapon-box-blue.png', img => { this.imgBasic = img; }),
-      AssetManager.loadImage('weapon-box-orange.png', img => { this.imgMissile = img; }),
-      AssetManager.loadImage('weapon-box-glow.png', img => { this.imgHighlight = img; }),
-    ]);
-  }
-
-  activeWeaponType = WeaponType.Basic;
-
-  posBasic = createVector(32, height * 1/4 - WeaponControls.imgBasic.height/2);
-  posMissile = createVector(32, height * 3/4 - WeaponControls.imgMissile.height/2);
-
-  reloadTimer = 0;
+  basicReloadTimer = 0;
+  missileReloadTimer = 0;
 
   update(): void {
-    this.reloadTimer = max(0, this.reloadTimer - (deltaTime/1000));
+    this.basicReloadTimer = max(0, this.basicReloadTimer - (deltaTime/1000));
+    this.missileReloadTimer = max(0, this.missileReloadTimer - (deltaTime/1000));
   }
 
   draw(): void {
-    const { imgBasic, imgMissile, imgHighlight } = WeaponControls;
-    const { posBasic, posMissile, activeWeaponType: activeWeapon, reloadTimer } = this;
+    const { basicReloadTimer, missileReloadTimer } = this;
 
-    image(imgBasic, posBasic.x, posBasic.y);
-    image(imgMissile, posMissile.x, posMissile.y);
+    push();
+    {
+      rectMode(CENTER);
 
-    if (activeWeapon === WeaponType.Basic) {
-      image(imgHighlight, posBasic.x, posBasic.y);
-    } else {
-      image(imgHighlight, posMissile.x, posMissile.y, imgHighlight.width * (1 - (reloadTimer / MISSILE_RELOAD_TIME)));
+      noFill().stroke('#0f91db').strokeWeight(2);
+      rect(32, round(height * 1/4), BAR_WIDTH + 4, BAR_HEIGHT + 4);
+      fill('#0f91db').noStroke();
+      rect(32, round(height * 1/4), BAR_WIDTH, BAR_HEIGHT * (1 - basicReloadTimer / BASIC_RELOAD_TIME));
+
+      noFill().stroke('#db810f').strokeWeight(2);
+      rect(32, round(height * 3/4), BAR_WIDTH + 4, BAR_HEIGHT + 4);
+      fill('#db810f').noStroke();
+      rect(32, round(height * 3/4), BAR_WIDTH, BAR_HEIGHT * (1 - missileReloadTimer / MISSILE_RELOAD_TIME));
+    }
+    pop();
+  }
+
+  canFire(weaponType: WeaponType): boolean {
+    switch (weaponType) {
+      case WeaponType.Basic: return this.basicReloadTimer === 0;
+      case WeaponType.Missile: return this.missileReloadTimer === 0;
     }
   }
 
-  tryFire(): boolean {
-    if (this.reloadTimer > 0) {
-      return false;
+  tryFire(weaponType: WeaponType): boolean {
+    switch (weaponType) {
+      case WeaponType.Basic: {
+        if (this.basicReloadTimer > 0) return false;
+        this.basicReloadTimer = BASIC_RELOAD_TIME;
+        return true;
+      }
+      case WeaponType.Missile: {
+        if (this.missileReloadTimer > 0) return false;
+        this.missileReloadTimer = MISSILE_RELOAD_TIME;
+        return true;
+      }
     }
-
-    if (this.activeWeaponType === WeaponType.Missile) {
-      this.reloadTimer = MISSILE_RELOAD_TIME;
-    }
-
-    return true;
-  }
-
-  handleMousePressed(): boolean {
-    const { imgBasic, imgMissile } = WeaponControls;
-    const { posBasic, posMissile } = this;
-
-    if (mouseX >= posBasic.x && mouseX < posBasic.x + imgBasic.width &&
-        mouseY >= posBasic.y && mouseY < posBasic.y + imgBasic.height) {
-      this.activeWeaponType = WeaponType.Basic;
-      this.reloadTimer = 0;
-      return true;
-    }
-
-    if (mouseX >= posMissile.x && mouseX < posMissile.x + imgMissile.width &&
-        mouseY >= posMissile.y && mouseY < posMissile.y + imgMissile.height) {
-      this.activeWeaponType = WeaponType.Missile;
-      return true;
-    }
-
-    return false;
   }
 }

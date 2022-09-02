@@ -132,6 +132,7 @@ const ViewManager = {
     clearLayer(layer) {
         layerList[layer]?.exitView();
     },
+    get views() { return layerList.map(layer => layer.view).filter(view => view !== null); },
     update() {
         if (didBecomeVisible) {
             didBecomeVisible = false;

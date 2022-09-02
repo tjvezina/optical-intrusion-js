@@ -78,23 +78,23 @@ export default class Wave {
   phaseList: Phase[];
   currentPhase = 0;
 
-  power = 1;
+  power = 0;
 
   state = WaveState.Running;
   nextWaveTimer = 0;
 
   constructor(onSpawn: SpawnCallback) {
     this.phaseList = [
-      new Phase(30, [
+      new Phase(15, [
         new Spawner(EnemyType.A, 4, onSpawn),
       ]),
-      new Phase(30, [
+      new Phase(20, [
         new Spawner(EnemyType.A, 4, onSpawn),
         new Spawner(EnemyType.B, 2.5, onSpawn),
       ]),
       new Phase(30, [
         new Spawner(EnemyType.A, 4, onSpawn),
-        new Spawner(EnemyType.C, 1, onSpawn),
+        new Spawner(EnemyType.C, 1.5, onSpawn),
       ]),
       new Phase(30, [
         new Spawner(EnemyType.A, 6, onSpawn),

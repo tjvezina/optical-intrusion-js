@@ -4,9 +4,13 @@ import ViewManager from '../framework/view-manager/view-manager.js';
 import MainMenuView from './main-menu-view.js';
 
 export default class SplashView extends View {
-  imgBackground: p5.Image;
   imgTitle: p5.Image;
   imgContinue: p5.Image;
+
+  constructor() {
+    super();
+    this.doExitFade = false;
+  }
 
   override async loadAssets(): Promise<void> {
     // Preload assets for the menu system
@@ -25,15 +29,11 @@ export default class SplashView extends View {
       AssetManager.preloadImage('title-credits.png'),
       AssetManager.preloadImage('button-back.png'),
 
-      AssetManager.preloadImage('instructions-1.png'),
-      AssetManager.preloadImage('instructions-2.png'),
-
       AssetManager.preloadImage('game-over.png'),
     ]);
   }
 
   override init(): void {
-    this.imgBackground = AssetManager.getImage('starfield.png');
     this.imgTitle = AssetManager.getImage('title.png');
     this.imgContinue = AssetManager.getImage('tap-to-continue.png');
   }
@@ -43,10 +43,9 @@ export default class SplashView extends View {
   }
 
   override draw(): void {
-    image(this.imgBackground, 0, 0, width, height);
-
     imageMode(CENTER);
     image(this.imgTitle, width/2, height/2 - 15);
+    tint(255, 255 * this.transitionPos);
     image(this.imgContinue, width/2, height/2 + 84);
   }
 }

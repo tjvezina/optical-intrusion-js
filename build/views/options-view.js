@@ -2,6 +2,7 @@ import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import SaveDataHelper from '../io/save-data-helper.js';
+import { onVolumeChanged } from '../sketch.js';
 import Button from '../ui/button.js';
 import Slider from '../ui/slider.js';
 import MainMenuView from './main-menu-view.js';
@@ -10,6 +11,8 @@ export default class OptionsView extends View {
         super();
         this.musicVolumeSlider = new Slider(346, 128, this.onMusicVolumeChanged.bind(this));
         this.sfxVolumeSlider = new Slider(346, 195, this.onSFXVolumeChanged.bind(this));
+        this.doEnterFade = false;
+        this.doExitFade = false;
         this.musicVolumeSlider.value = SaveDataHelper.getMusicVolume();
         this.sfxVolumeSlider.value = SaveDataHelper.getSFXVolume();
     }
@@ -18,7 +21,6 @@ export default class OptionsView extends View {
         this.sfxVolumeSlider.dispose();
     }
     init() {
-        this.imgBackground = AssetManager.getImage('starfield.png');
         this.imgTitle = AssetManager.getImage('title-options.png');
         const imgBackButton = AssetManager.getImage('button-back.png');
         this.backButton = new Button(imgBackButton, 79, height - 32);
@@ -33,11 +35,10 @@ export default class OptionsView extends View {
         this.sfxVolumeSlider.update();
     }
     draw() {
-        image(this.imgBackground, 0, 0, width, height);
+        tint(255, 255 * this.transitionPos);
         imageMode(CENTER);
         image(this.imgTitle, width / 2, height / 2 - 108);
-        textFont('sans-serif');
-        fill('#a88f59').noStroke();
+        fill('#a88f59').stroke(0).strokeWeight(4);
         textSize(24);
         textStyle(BOLD);
         textAlign(RIGHT, CENTER);
@@ -49,9 +50,11 @@ export default class OptionsView extends View {
     }
     onMusicVolumeChanged() {
         SaveDataHelper.setMusicVolume(this.musicVolumeSlider.value);
+        onVolumeChanged();
     }
     onSFXVolumeChanged() {
         SaveDataHelper.setSFXVolume(this.sfxVolumeSlider.value);
+        onVolumeChanged();
     }
 }
 //# sourceMappingURL=options-view.js.map

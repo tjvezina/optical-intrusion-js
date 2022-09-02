@@ -4,11 +4,15 @@ import ViewManager from '../framework/view-manager/view-manager.js';
 import MainMenuView from './main-menu-view.js';
 
 export default class GameOverView extends View {
-  imgBackground: p5.Image;
   imgContent: p5.Image;
 
+  constructor() {
+    super();
+    this.doEnterFade = false;
+    this.doExitFade = false;
+  }
+
   override init(): void {
-    this.imgBackground = AssetManager.getImage('starfield.png');
     this.imgContent = AssetManager.getImage('game-over.png');
   }
 
@@ -17,7 +21,7 @@ export default class GameOverView extends View {
   }
 
   override draw(): void {
-    image(this.imgBackground, 0, 0, width, height);
+    tint(255, 255 * this.transitionPos);
     image(this.imgContent, 0, 0, width, height);
   }
 }

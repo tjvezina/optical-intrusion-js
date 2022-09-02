@@ -21,7 +21,7 @@ export default class Player extends Actor {
 
   constructor() {
     super(Player.img);
-    this.pos.set(16 + this.size.x/2, height/2);
+    this.pos.set(32, height/2);
   }
 
   override draw(): void {
@@ -38,7 +38,7 @@ export default class Player extends Actor {
     noFill().stroke(col).strokeWeight(2);
     rect(7, 7, 8, height - 14);
 
-    fill(col).noStroke();
+    fill(lerpColor(color('#c50000'), col, this.health / MAX_HEALTH)).noStroke();
     rectMode(CENTER);
     rect(11, height/2, 4, ceil((height - 18) * (this.health / MAX_HEALTH) / 2) * 2);
   }

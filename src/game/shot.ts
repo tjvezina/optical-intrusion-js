@@ -35,4 +35,9 @@ export default class Shot extends Actor {
     // TODO: Remove explicit type casts when p5 type definitions are corrected
     this.pos.add(p5.Vector.mult(this.vel, deltaTime/1000) as unknown as p5.Vector);
   }
+
+  override draw(): void {
+    fill(this.type === WeaponType.Basic ? '#0f91db' : '#db810f').stroke(0).strokeWeight(1);
+    circle(this.pos.x, this.pos.y, this.type === WeaponType.Basic ? 6 : 8);
+  }
 }

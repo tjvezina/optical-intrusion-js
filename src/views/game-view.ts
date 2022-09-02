@@ -1,12 +1,11 @@
 import AssetManager from '../framework/asset-manager.js';
 import View, { ViewState } from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
-import Background from '../game/background.js';
 import Collider from '../game/collision/collider.js';
 import CollisionManager, { CollisionListener } from '../game/collision/collision-manager.js';
 import Enemy, { EnemyType } from '../game/enemy.js';
 import Explosion from '../game/explosion.js';
-import Player from '../game/player.js';
+import Player, { WeaponType } from '../game/player.js';
 import Shot from '../game/shot.js';
 import Wave, { WaveState } from '../game/wave.js';
 import WeaponControls from '../game/weapon-controls.js';
@@ -22,12 +21,6 @@ export default class GameView extends View implements CollisionListener {
   explodeSound: p5.SoundFile;
   enemyDamageSound: p5.SoundFile;
 
-  music: p5.SoundFile;
-
-  imgWaveComplete: p5.Image;
-
-  background: Background;
-
   weaponControls: WeaponControls;
 
   collisionManager: CollisionManager;
@@ -42,17 +35,20 @@ export default class GameView extends View implements CollisionListener {
   currentScore = 0;
   highScore = SaveDataHelper.getHighScore();
 
-  isAiming = false;
+  aimingWeaponType: WeaponType | null = null;
 
   isPaused = false;
   isGameOver = false;
 
   lastFocusTime = 0;
 
-  font: p5.Font;
+  constructor() {
+    super();
+    this.doEnterFade = false;
+    this.doExitFade = false;
+  }
 
   override onDispose(): void {
-    this.music.stop();
     this.collisionManager.dispose();
   }
 
@@ -64,14 +60,6 @@ export default class GameView extends View implements CollisionListener {
       AssetManager.loadSound('explode.wav', sound => { this.explodeSound = sound; }),
       AssetManager.loadSound('enemy-damage.wav', sound => { this.enemyDamageSound = sound; }),
 
-      AssetManager.loadSound('lazy-bones.mp3', music => { this.music = music; }),
-
-      AssetManager.loadImage('wave-complete-message.png', img => { this.imgWaveComplete = img; }),
-
-      AssetManager.loadFont('OCRAStd.otf', font => { this.font = font; }),
-
-      Background.loadContent(),
-      WeaponControls.loadContent(),
       Player.loadContent(),
       Shot.loadContent(),
       Enemy.loadContent(),
@@ -85,13 +73,9 @@ export default class GameView extends View implements CollisionListener {
   }
 
   override init(): void {
-    this.background = new Background();
     this.weaponControls = new WeaponControls();
 
     this.player = new Player();
-
-    this.music.loop();
-    this.music.setVolume(SaveDataHelper.getMusicVolume());
 
     this.collisionManager = new CollisionManager(this);
 
@@ -121,21 +105,17 @@ export default class GameView extends View implements CollisionListener {
   pause(): void {
     if (!this.isPaused) {
       this.isPaused = true;
-      this.music.pause();
     }
   }
 
   unpause(): void {
     if (this.isPaused) {
       this.isPaused = false;
-      this.music.loop();
     }
   }
 
   override update(): void {
     if (this.isPaused) return;
-
-    this.background.update();
 
     this.collisionManager.update();
 
@@ -143,8 +123,6 @@ export default class GameView extends View implements CollisionListener {
 
     if (this.wave.state === WaveState.Waiting && this.enemyList.length === 0) {
       this.wave.startNextWave();
-    } else if (this.wave.state === WaveState.Resetting) {
-      this.player.increaseHealth(1);
     }
 
     this.enemyList = this.enemyList.filter(enemy => {
@@ -185,21 +163,20 @@ export default class GameView extends View implements CollisionListener {
   }
 
   override draw(): void {
-    this.background.draw();
-
     this.weaponControls.draw();
 
     this.enemyList.forEach(enemy => enemy.draw());
     this.explosionList.forEach(explosion => explosion.draw());
 
-    if (this.isAiming) {
+    if (this.aimingWeaponType !== null) {
       const delta = p5.Vector.sub(createVector(mouseX, mouseY), this.player.pos);
       const angle = atan2(delta.y, max(0, delta.x));
       push();
       {
         translate(this.player.pos.x, this.player.pos.y);
         rotate(angle);
-        noFill().stroke('#c50000').strokeWeight(3);
+        noFill().strokeWeight(3);
+        stroke(this.weaponControls.canFire(this.aimingWeaponType) ? '#c50000' : '#c5000040');
         line(0, 0, width+height, 0);
       }
       pop();
@@ -214,22 +191,23 @@ export default class GameView extends View implements CollisionListener {
     if (this.wave.state === WaveState.Resetting) {
       push();
       {
-        imageMode(CENTER);
-        image(this.imgWaveComplete, width/2, height/2);
+        textAlign(CENTER, CENTER);
+        textSize(height/10);
+        fill('#93cd53').stroke(0).strokeWeight(4);
+        text(`WAVE ${this.wave.power + 1}\nCOMPLETE`, width/2, height/2);
       }
       pop();
     }
 
     textSize(18);
     textAlign(LEFT, CENTER);
-    fill('#fd801c').noStroke();
+    fill('#fd801c').stroke(0).strokeWeight(4);
     text(`Your Score: ${this.currentScore}`, 28, 22);
     fill('#119ac4');
     text(`High Score: ${this.highScore}`, 28, height - 22);
 
     if (this.isPaused) {
       background(0, 127);
-      textFont(this.font);
       textAlign(CENTER, CENTER);
       textSize(height/10);
       fill('#93cd53').stroke(0).strokeWeight(4);
@@ -256,24 +234,21 @@ export default class GameView extends View implements CollisionListener {
   mousePressed(): void {
     if (this.isPaused) return;
 
-    // If a weapon control was clicked, consume input
-    if (this.weaponControls.handleMousePressed()) return;
-
     if (mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height) {
-      this.isAiming = true;
+      this.aimingWeaponType = (mouseButton === LEFT ? WeaponType.Basic : WeaponType.Missile);
     }
   }
 
   mouseReleased(): void {
-    if (this.isAiming && this.weaponControls.tryFire()) {
+    if (this.aimingWeaponType !== null && this.weaponControls.tryFire(this.aimingWeaponType)) {
       const delta = p5.Vector.sub(createVector(mouseX, mouseY), this.player.pos);
       delta.x = max(0, delta.x);
 
-      this.shotList.push(new Shot(this.player.pos, delta, this.weaponControls.activeWeaponType));
+      this.shotList.push(new Shot(this.player.pos, delta, this.aimingWeaponType));
       this.playSound(this.shotSound);
     }
 
-    this.isAiming = false;
+    this.aimingWeaponType = null;
   }
 
   onCollision(colliderA: Collider, colliderB: Collider): void {

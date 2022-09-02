@@ -1,59 +1,54 @@
-import AssetManager from '../framework/asset-manager.js';
 import { WeaponType } from './player.js';
+const BASIC_RELOAD_TIME = 0.1;
 const MISSILE_RELOAD_TIME = 1;
+const BAR_HEIGHT = 64;
+const BAR_WIDTH = 4;
 export default class WeaponControls {
     constructor() {
-        this.activeWeaponType = WeaponType.Basic;
-        this.posBasic = createVector(32, height * 1 / 4 - WeaponControls.imgBasic.height / 2);
-        this.posMissile = createVector(32, height * 3 / 4 - WeaponControls.imgMissile.height / 2);
-        this.reloadTimer = 0;
-    }
-    static async loadContent() {
-        await Promise.all([
-            AssetManager.loadImage('weapon-box-blue.png', img => { this.imgBasic = img; }),
-            AssetManager.loadImage('weapon-box-orange.png', img => { this.imgMissile = img; }),
-            AssetManager.loadImage('weapon-box-glow.png', img => { this.imgHighlight = img; }),
-        ]);
+        this.basicReloadTimer = 0;
+        this.missileReloadTimer = 0;
     }
     update() {
-        this.reloadTimer = max(0, this.reloadTimer - (deltaTime / 1000));
+        this.basicReloadTimer = max(0, this.basicReloadTimer - (deltaTime / 1000));
+        this.missileReloadTimer = max(0, this.missileReloadTimer - (deltaTime / 1000));
     }
     draw() {
-        const { imgBasic, imgMissile, imgHighlight } = WeaponControls;
-        const { posBasic, posMissile, activeWeaponType: activeWeapon, reloadTimer } = this;
-        image(imgBasic, posBasic.x, posBasic.y);
-        image(imgMissile, posMissile.x, posMissile.y);
-        if (activeWeapon === WeaponType.Basic) {
-            image(imgHighlight, posBasic.x, posBasic.y);
+        const { basicReloadTimer, missileReloadTimer } = this;
+        push();
+        {
+            rectMode(CENTER);
+            noFill().stroke('#0f91db').strokeWeight(2);
+            rect(32, round(height * 1 / 4), BAR_WIDTH + 4, BAR_HEIGHT + 4);
+            fill('#0f91db').noStroke();
+            rect(32, round(height * 1 / 4), BAR_WIDTH, BAR_HEIGHT * (1 - basicReloadTimer / BASIC_RELOAD_TIME));
+            noFill().stroke('#db810f').strokeWeight(2);
+            rect(32, round(height * 3 / 4), BAR_WIDTH + 4, BAR_HEIGHT + 4);
+            fill('#db810f').noStroke();
+            rect(32, round(height * 3 / 4), BAR_WIDTH, BAR_HEIGHT * (1 - missileReloadTimer / MISSILE_RELOAD_TIME));
         }
-        else {
-            image(imgHighlight, posMissile.x, posMissile.y, imgHighlight.width * (1 - (reloadTimer / MISSILE_RELOAD_TIME)));
+        pop();
+    }
+    canFire(weaponType) {
+        switch (weaponType) {
+            case WeaponType.Basic: return this.basicReloadTimer === 0;
+            case WeaponType.Missile: return this.missileReloadTimer === 0;
         }
     }
-    tryFire() {
-        if (this.reloadTimer > 0) {
-            return false;
+    tryFire(weaponType) {
+        switch (weaponType) {
+            case WeaponType.Basic: {
+                if (this.basicReloadTimer > 0)
+                    return false;
+                this.basicReloadTimer = BASIC_RELOAD_TIME;
+                return true;
+            }
+            case WeaponType.Missile: {
+                if (this.missileReloadTimer > 0)
+                    return false;
+                this.missileReloadTimer = MISSILE_RELOAD_TIME;
+                return true;
+            }
         }
-        if (this.activeWeaponType === WeaponType.Missile) {
-            this.reloadTimer = MISSILE_RELOAD_TIME;
-        }
-        return true;
-    }
-    handleMousePressed() {
-        const { imgBasic, imgMissile } = WeaponControls;
-        const { posBasic, posMissile } = this;
-        if (mouseX >= posBasic.x && mouseX < posBasic.x + imgBasic.width &&
-            mouseY >= posBasic.y && mouseY < posBasic.y + imgBasic.height) {
-            this.activeWeaponType = WeaponType.Basic;
-            this.reloadTimer = 0;
-            return true;
-        }
-        if (mouseX >= posMissile.x && mouseX < posMissile.x + imgMissile.width &&
-            mouseY >= posMissile.y && mouseY < posMissile.y + imgMissile.height) {
-            this.activeWeaponType = WeaponType.Missile;
-            return true;
-        }
-        return false;
     }
 }
 //# sourceMappingURL=weapon-controls.js.map

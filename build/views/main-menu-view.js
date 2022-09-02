@@ -1,14 +1,19 @@
 import AssetManager from '../framework/asset-manager.js';
-import View from '../framework/view-manager/view.js';
+import View, { ViewState } from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import Button from '../ui/button.js';
 import CreditsView from './credits-view.js';
 import GameView from './game-view.js';
 import InstructionsView from './instructions-view.js';
 import OptionsView from './options-view.js';
+let isFirstAppearance = true;
 export default class MainMenuView extends View {
+    constructor() {
+        super();
+        this.doEnterFade = false;
+        this.doExitFade = false;
+    }
     init() {
-        this.imgBackground = AssetManager.getImage('starfield.png');
         this.imgTitle = AssetManager.getImage('title.png');
         const imgPlayButton = AssetManager.getImage('button-play.png');
         this.playButton = new Button(imgPlayButton, width / 2 - 124, height / 2 + 57);
@@ -18,6 +23,9 @@ export default class MainMenuView extends View {
         this.optionsButton = new Button(imgOptionsButton, width / 2 - 124, height / 2 + 122);
         const imgCreditsButton = AssetManager.getImage('button-credits.png');
         this.creditsButton = new Button(imgCreditsButton, width / 2 + 124, height / 2 + 122);
+    }
+    onDispose() {
+        isFirstAppearance = false;
     }
     mouseClicked() {
         if (this.playButton.contains(mouseX, mouseY)) {
@@ -34,9 +42,12 @@ export default class MainMenuView extends View {
         }
     }
     draw() {
-        image(this.imgBackground, 0, 0, width, height);
+        if (!isFirstAppearance || this.state === ViewState.Exiting) {
+            tint(255, 255 * this.transitionPos);
+        }
         imageMode(CENTER);
         image(this.imgTitle, width / 2, height / 2 - 15);
+        tint(255, 255 * this.transitionPos);
         this.playButton.draw();
         this.howToButton.draw();
         this.optionsButton.draw();

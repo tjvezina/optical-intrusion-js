@@ -3,10 +3,10 @@ const KEY_SFX_VOLUME = 'sfx-volume';
 const KEY_HIGH_SCORE = 'high-score';
 
 const SaveDataHelper = {
-  getMusicVolume(): number { return getItem(KEY_MUSIC_VOLUME) as number ?? 0.5; },
+  getMusicVolume(): number { return getItem(KEY_MUSIC_VOLUME) as number ?? 0.25; },
   setMusicVolume(volume: number): void { storeItem(KEY_MUSIC_VOLUME, volume); },
 
-  getSFXVolume(): number { return getItem(KEY_SFX_VOLUME) as number ?? 0.5; },
+  getSFXVolume(): number { return getItem(KEY_SFX_VOLUME) as number ?? 0.25; },
   setSFXVolume(volume: number): void { storeItem(KEY_SFX_VOLUME, volume); },
 
   getHighScore(): number { return getItem(KEY_HIGH_SCORE) as number ?? 0; },

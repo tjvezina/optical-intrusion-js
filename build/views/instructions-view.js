@@ -1,27 +1,20 @@
-import AssetManager from '../framework/asset-manager.js';
 import View from '../framework/view-manager/view.js';
 import ViewManager from '../framework/view-manager/view-manager.js';
 import MainMenuView from './main-menu-view.js';
-const PAGE_COUNT = 2;
 export default class InstructionsView extends View {
     constructor() {
-        super(...arguments);
-        this.currentPage = 0;
-    }
-    init() {
-        this.imgPage1 = AssetManager.getImage('instructions-1.png');
-        this.imgPage2 = AssetManager.getImage('instructions-2.png');
+        super();
+        this.doEnterFade = false;
+        this.doExitFade = false;
     }
     mouseClicked() {
-        if (this.currentPage < PAGE_COUNT - 1) {
-            ++this.currentPage;
-        }
-        else {
-            ViewManager.transitionTo(new MainMenuView());
-        }
+        ViewManager.transitionTo(new MainMenuView());
     }
     draw() {
-        image([this.imgPage1, this.imgPage2][this.currentPage], 0, 0, width, height);
+        fill('#c50000').stroke(0).strokeWeight(4);
+        textSize(24);
+        textAlign(CENTER, CENTER);
+        text('Shoot the enemy eyeballs before they get past you.\n\nLeft click to shoot, right click to fire missiles.\n\nSurvive as long as you can!', 0, 0, width, height);
     }
 }
 //# sourceMappingURL=instructions-view.js.map

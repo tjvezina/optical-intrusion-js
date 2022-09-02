@@ -23,5 +23,9 @@ export default class Shot extends Actor {
     update() {
         this.pos.add(p5.Vector.mult(this.vel, deltaTime / 1000));
     }
+    draw() {
+        fill(this.type === WeaponType.Basic ? '#0f91db' : '#db810f').stroke(0).strokeWeight(1);
+        circle(this.pos.x, this.pos.y, this.type === WeaponType.Basic ? 6 : 8);
+    }
 }
 //# sourceMappingURL=shot.js.map

@@ -23,7 +23,7 @@ const ENEMY_DATA_MAP: { [key in EnemyType]: EnemyData } = {
   [EnemyType.B]: { scale: 0.3, health: 2, healthBarWidth: 32, healthBarOffset: 8 },
   [EnemyType.C]: { scale: 0.2, health: 1, healthBarWidth: 32, healthBarOffset: 4 },
   [EnemyType.D]: { scale: 0.5, health: 5, healthBarWidth: 32, healthBarOffset: 8 },
-  [EnemyType.E]: { scale: 2.0, health: 30, healthBarWidth: 64, healthBarOffset: 16 },
+  [EnemyType.E]: { scale: 2.0, health: 40, healthBarWidth: 64, healthBarOffset: 16 },
 } as const;
 
 export default class Enemy extends Actor {
@@ -57,9 +57,9 @@ export default class Enemy extends Actor {
 
     const data = ENEMY_DATA_MAP[type];
     this.size.mult(data.scale);
-    this.maxHealth = this.health = data.health * wavePower;
+    this.maxHealth = this.health = data.health + wavePower;
 
-    this.value = data.health * wavePower;
+    this.value = this.maxHealth;
 
     this.pos.set(width + this.size.x/2, random(height - this.size.y) + this.size.y/2);
     this.vel = createVector(-48, 0);
